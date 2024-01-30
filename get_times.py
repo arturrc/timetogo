@@ -1,20 +1,23 @@
 import time
+import os
 import requests
+import sys
 from google.transit import gtfs_realtime_pb2
 from requests.exceptions import HTTPError
 import json
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
 
+# Define paths
+script_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Load the JSON schema
-with open('wait_time_schema.json', 'r') as file:
+with open(os.path.join(script_dir, 'wait_time_schema.json'), 'r') as file:
     wait_time_schema = json.load(file)
 
 # Load stop names
-with open('stop_names.json', 'r') as file:
+with open(os.path.join(script_dir, 'stop_names.json'), 'r') as file:
     stop_names = json.load(file)
-
 
 # Print wait times
 def get_times(url, api, stop_ids, verbose=False):
@@ -63,6 +66,12 @@ def get_times(url, api, stop_ids, verbose=False):
 	return wait_times
 
 # Main ==================================================
+# Get command line argument
+if len(sys.argv) > 1:
+	output_path = sys.argv[1]
+else:
+	output_path = os.path.join(script_dir, 'tmp/wait_times.json')
+
 # Your API key
 api_key = 'n4JkD2b0u45dlXLxs0Yb8spjUkntJbx1siyCzyZ9'
 
@@ -87,5 +96,5 @@ except ValidationError as e:
     raise
 
 # Output JSON wait times
-with open('tmp/wait_times.json', 'w') as file:
+with open(output_path, 'w') as file:
     json.dump(wait_times, file, indent = 4)
