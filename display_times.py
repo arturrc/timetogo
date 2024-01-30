@@ -16,7 +16,7 @@ with open('tmp/wait_times.json', 'r') as file:
     wait_times = json.load(file)
 
 # Define display parameters
-min_wait_time = -2*60 # minimum wait time to display
+min_wait_time = -1*60 # minimum wait time to display
 max_wait_time = 20*60 # maximum wait time to display
 
 # ANSI escape code for yellow
@@ -26,8 +26,11 @@ GREEN = "\033[1;32m"
 RESET = "\033[0m"
 STATION = "\033[1;30m\033[1;47m"
 col_dict = {
+	"N" : YELLOW,
 	"R" : YELLOW,
+	"W" : YELLOW,
 	"F" : RED,
+	"D" : RED,
 	"G" : GREEN
 }
 
@@ -69,9 +72,13 @@ for stop_id, cur_wait_times in wait_times_split.items():
 
 		sec_display = f"{sec_num:02d}"
 
+		train_col = ""
+		if x['train_id'] in col_dict:
+			train_col = col_dict[x['train_id']]
+
 		if min_num == 0 and sec_num == 0:
-			print(f"{col_dict[x['train_id']]}({x['train_id']}){RESET} : arriving")
+			print(f"{train_col}({x['train_id']}){RESET} : arriving")
 		elif sec_num == 0:
-			print(f"{col_dict[x['train_id']]}({x['train_id']}){RESET} : {min_display}min")
+			print(f"{train_col}({x['train_id']}){RESET} : {min_display}min")
 		else:
-			print(f"{col_dict[x['train_id']]}({x['train_id']}){RESET} : {min_display}min{sec_display}")
+			print(f"{train_col}({x['train_id']}){RESET} : {min_display}min{sec_display}")
