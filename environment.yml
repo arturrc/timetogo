@@ -2,6 +2,7 @@ name: timetogo
 channels:
   - defaults
 dependencies:
+  - attrs=23.1.0=py312hecd8cb5_0
   - brotli-python=1.0.9=py312hcec6c5f_7
   - bzip2=1.0.8=h1de35cc_0
   - ca-certificates=2023.12.12=hecd8cb5_0
@@ -11,6 +12,8 @@ dependencies:
   - cryptography=41.0.7=py312h30e54ef_0
   - expat=2.5.0=hcec6c5f_0
   - idna=3.4=py312hecd8cb5_0
+  - jsonschema=4.19.2=py312hecd8cb5_0
+  - jsonschema-specifications=2023.7.1=py312hecd8cb5_0
   - libcxx=14.0.6=h9765a3e_0
   - libffi=3.4.4=hecd8cb5_0
   - ncurses=6.4=hcec6c5f_0
@@ -21,7 +24,9 @@ dependencies:
   - pysocks=1.7.1=py312hecd8cb5_0
   - python=3.12.1=hd58486a_0
   - readline=8.2=hca72f7f_0
+  - referencing=0.30.2=py312hecd8cb5_0
   - requests=2.31.0=py312hecd8cb5_0
+  - rpds-py=0.10.6=py312hf2ad997_0
   - setuptools=68.2.2=py312hecd8cb5_0
   - sqlite=3.41.2=h6c40b1e_0
   - tk=8.6.12=h5d9f67b_0
