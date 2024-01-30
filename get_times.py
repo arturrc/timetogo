@@ -2,14 +2,22 @@ import time
 import requests
 from google.transit import gtfs_realtime_pb2
 from requests.exceptions import HTTPError
+import json
+from jsonschema import validate
+from jsonschema.exceptions import ValidationError
 
-stop_names = {
-	'R34N' : 'Prospect Av.',
-	'F23N' : '4 Av./9 St.'
-}
+
+# Load the JSON schema
+with open('wait_time_schema.json', 'r') as file:
+    wait_time_schema = json.load(file)
+
+# Load stop names
+with open('stop_names.json', 'r') as file:
+    stop_names = json.load(file)
+
 
 # Print wait times
-def get_times(url, api, stop_ids):
+def get_times(url, api, stop_ids, verbose=False):
 	# Make GET request
 	headers = {
 		'x-api-key': api_key
@@ -29,6 +37,8 @@ def get_times(url, api, stop_ids):
 
 	current_time = int(time.time())
 
+	wait_times = []
+
 	for entity in feed.entity:
 		if entity.HasField('trip_update'):
 			trip_update = entity.trip_update
@@ -36,9 +46,21 @@ def get_times(url, api, stop_ids):
 			for x in trip_update.stop_time_update:
 				if x.stop_id in stop_ids:
 					cur_stop_id = [stop_id for stop_id in stop_ids if x.stop_id == stop_id][0]
-					min_to_arrival = (x.arrival.time - current_time)//60
-					sec_to_arrival = (x.arrival.time - current_time)%60
-					print(f"{trip_update.trip.route_id} train headed {x.stop_id[-1]} arriving in {min_to_arrival}min{sec_to_arrival} at {stop_names[cur_stop_id]}")
+					time_to_arrival = x.arrival.time - current_time
+
+					if verbose:
+						print(f"{trip_update.trip.route_id} train headed {x.stop_id[-1]} arriving in {time_to_arrival//60}min at {stop_names[cur_stop_id]}")
+
+					cur_obj = [{
+						'train_id' : trip_update.trip.route_id,
+						'stop_id' : cur_stop_id,
+						'wait_time' : time_to_arrival,
+						'recorded_time' : current_time
+					}]
+
+					wait_times += cur_obj
+
+	return wait_times
 
 # Main ==================================================
 # Your API key
@@ -53,6 +75,17 @@ url_green = 'https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-
 stop_ids = ['R34N', 'F23N']
 
 # Print wait times
-get_times(url_yellow, api_key, stop_ids)
-get_times(url_orange, api_key, stop_ids)
-get_times(url_green, api_key, stop_ids)
+wait_times = get_times(url_yellow, api_key, stop_ids, verbose = True)
+wait_times += get_times(url_orange, api_key, stop_ids, verbose = True)
+wait_times += get_times(url_green, api_key, stop_ids, verbose = True)
+
+# Validate JSON data
+try:
+    validate(instance=wait_times, schema=wait_time_schema)
+except ValidationError as e:
+    print("JSON data is invalid:", e)
+    raise
+
+# Output JSON wait times
+with open('tmp/wait_times.json', 'w') as file:
+    json.dump(wait_times, file, indent = 4)
