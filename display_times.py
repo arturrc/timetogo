@@ -19,6 +19,17 @@ with open('tmp/wait_times.json', 'r') as file:
 min_wait_time = -2*60 # minimum wait time to display
 max_wait_time = 20*60 # maximum wait time to display
 
+# ANSI escape code for yellow
+ORANGE = "\033[38;5;214m"
+YELLOW = "\033[93m"
+GREEN = "\033[1;32m"
+RESET = "\033[0m"
+col_dict = {
+	"R" : YELLOW,
+	"F" : ORANGE,
+	"G" : GREEN
+}
+
 # Go through wait times and print them nicely
 current_time = int(time.time())
 for x in wait_times:
@@ -27,15 +38,13 @@ for x in wait_times:
 	if cur_time_to_arrival < min_wait_time or cur_time_to_arrival > max_wait_time:
 		continue
 
-	min_display = cur_time_to_arrival//60
+	min_display = f"{(cur_time_to_arrival//60):2d}"
 	sec_remainder = cur_time_to_arrival%60
-	sec_display = 15*(sec_remainder//15)
-	if min_display == 0:
-		if sec_display == 0:
-			print(f"({x['train_id']}) : arriving")
-		else:
-			print(f"({x['train_id']}) : {sec_display}s")
+	sec_display = f"{(15*(sec_remainder//15)):02d}"
+
+	if min_display == 0 and sec_display == 0:
+		print(f"{col_dict[x['train_id']]}({x['train_id']}){RESET} : arriving")
 	elif sec_display == 0:
-		print(f"({x['train_id']}) : {min_display}min")
+		print(f"{col_dict[x['train_id']]}({x['train_id']}){RESET} : {min_display}min")
 	else:
-		print(f"({x['train_id']}) : {min_display}min{sec_display}")
+		print(f"{col_dict[x['train_id']]}({x['train_id']}){RESET} : {min_display}min{sec_display}")
