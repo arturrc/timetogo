@@ -75,9 +75,9 @@ url_green = 'https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-
 stop_ids = ['R34N', 'F23N']
 
 # Print wait times
-wait_times = get_times(url_yellow, api_key, stop_ids, verbose = True)
-wait_times += get_times(url_orange, api_key, stop_ids, verbose = True)
-wait_times += get_times(url_green, api_key, stop_ids, verbose = True)
+wait_times = get_times(url_yellow, api_key, stop_ids)
+wait_times += get_times(url_orange, api_key, stop_ids)
+wait_times += get_times(url_green, api_key, stop_ids)
 
 # Validate JSON data
 try:
