@@ -1,0 +1,2 @@
+#/bin/bash
+watch -n 5 -c python display_times.py
