@@ -17,12 +17,15 @@ import traceback
 
 logging.basicConfig(level=logging.DEBUG)                           #Enable log-information for debbuging
 
+# Define paths
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
 # Load the JSON schema
-with open('wait_time_schema.json', 'r') as file:
+with open(os.path.join(script_dir, 'wait_time_schema.json'), 'r') as file:
     wait_time_schema = json.load(file)
 
 # Load stop names
-with open('stop_names.json', 'r') as file:
+with open(os.path.join(script_dir, 'stop_names.json'), 'r') as file:
     stop_names = json.load(file)
 
 # Define display parameters
@@ -31,7 +34,7 @@ max_wait_time = 20*60 # maximum wait time to display
 
 # Prepare font and parameters
 font_size = 35
-font = ImageFont.truetype("Font.ttc", font_size)
+font = ImageFont.truetype(os.path.join(script_dir, "Font.ttc"), font_size)
 
 # Prepare EPD object
 epd = epd7in5_V2.EPD()
@@ -41,7 +44,7 @@ epd.sleep()
 
 while True:
 	# Load latest wait times
-	with open('tmp/wait_times.json', 'r') as file:
+	with open(os.path.join(script_dir, 'tmp/wait_times.json'), 'r') as file:
 	    wait_times = json.load(file)
 
 	# Order wait times based on wait time
