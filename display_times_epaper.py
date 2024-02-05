@@ -30,10 +30,10 @@ with open(os.path.join(script_dir, 'stop_names.json'), 'r') as file:
 
 # Define display parameters
 min_wait_time = 0*60 # minimum wait time to display
-max_wait_time = 20*60 # maximum wait time to display
+max_wait_time = 60*60 # maximum wait time to display
 
 # Prepare font and parameters
-font_size = 45
+font_size = 35
 font = ImageFont.truetype(os.path.join(script_dir, "Font.ttc"), font_size)
 
 # Prepare EPD object
@@ -42,6 +42,14 @@ epd.init()
 epd.Clear()
 epd.sleep()
 
+# Display parameters
+screen_pad = (20, 20, 20, 20) # up, right, bottom, left
+font_pad = 10
+line_height = font_size + 2*font_pad
+circle_square_size = font_size*1.1
+circle_square_lateral_pad = 40
+n_lines = (epd.height - screen_pad[0] - screen_pad[2])//line_height
+
 while True:
 	# Load latest wait times
 	with open(os.path.join(script_dir, 'tmp/wait_times.json'), 'r') as file:
@@ -49,6 +57,10 @@ while True:
 
 	# Order wait times based on wait time
 	wait_times.sort(key = lambda x: x['wait_time'])
+
+	# Reduce to only as many lines fit on the screen
+	n_stations = len(list(dict.fromkeys([x['stop_id'] for x in wait_times])))
+	wait_times = wait_times[0:min(len(wait_times), n_lines - n_stations + 1)]
 
 	# Split wait times based on station
 	wait_times_split = {}
@@ -61,14 +73,7 @@ while True:
 	# Initialize display buffer
 	Himage = Image.new('L', (epd.width, epd.height), 255)           #Clear the frame (255 = white)
 	draw = ImageDraw.Draw(Himage)                                   #Create new image buffer
-
-	# Display parameters
-	x0 = 20
-	y0 = 20
-	font_pad = 10
-	line_height = font_size + 2*font_pad
-	circle_square_size = font_size*1.1
-	circle_square_lateral_pad = 40
+	y0 = screen_pad[0]
 
 	# Go through wait times and print them nicely
 	current_time = int(time.time())
@@ -76,12 +81,12 @@ while True:
 
 	# Print current time, right-justified
 	text_width, text_height = draw.textsize(formatted_time, font=font)
-	draw.text((epd.width - x0 - text_width, epd.height - y0 - text_height), formatted_time, font = font, fill = 0)
+	draw.text((epd.width - screen_pad[3] - text_width, epd.height - y0 - text_height), formatted_time, font = font, fill = 0)
 
 	# Print wait times
 	for stop_id, cur_wait_times in wait_times_split.items():
 		draw.rectangle((0, y0, epd.width, y0 + line_height), fill = 0)
-		draw.text((x0 + font_pad, y0 + font_pad), f"{stop_names[stop_id]}", font = font, fill = 255)
+		draw.text((screen_pad[3] + font_pad, y0 + font_pad), f"{stop_names[stop_id]}", font = font, fill = 255)
 		y0 += line_height
 
 		for x in cur_wait_times:
@@ -106,23 +111,23 @@ while True:
 			sec_display = f"{sec_num:02d}"
 
 			# Draw train line
-			draw.chord((x0 + circle_square_lateral_pad, y0 + line_height/2 - circle_square_size/2,
-				x0 + circle_square_lateral_pad + circle_square_lateral_pad, y0 + line_height/2 + circle_square_size/2),
+			draw.chord((screen_pad[3] + circle_square_lateral_pad, y0 + line_height/2 - circle_square_size/2,
+				screen_pad[3] + circle_square_lateral_pad + circle_square_lateral_pad, y0 + line_height/2 + circle_square_size/2),
 				0, 360, fill = 50)
-			draw.text((x0 + circle_square_lateral_pad + circle_square_size/4, y0 + line_height/2 - font_size/2), f"{x['train_id']}", font = font, fill = 255)
+			draw.text((screen_pad[3] + circle_square_lateral_pad + circle_square_size/4, y0 + line_height/2 - font_size/2), f"{x['train_id']}", font = font, fill = 255)
 
 			# Write waiting time
 			if min_num == 0 and sec_num == 0:
-				# draw.text((x0 + font_pad, y0 + font_pad), f"({x['train_id']}) : arriving", font = font, fill = 0)
-				draw.text((x0 + 2*circle_square_lateral_pad + circle_square_size, y0 + font_pad), f"arriving", font = font, fill = 0)
+				# draw.text((screen_pad[3] + font_pad, y0 + font_pad), f"({x['train_id']}) : arriving", font = font, fill = 0)
+				draw.text((screen_pad[3] + 2*circle_square_lateral_pad + circle_square_size, y0 + font_pad), f"arriving", font = font, fill = 0)
 				y0 += line_height
 			elif sec_num == 0:
-				# draw.text((x0 + font_pad, y0 + font_pad), f"({x['train_id']}) : {min_display}min", font = font, fill = 0)
-				draw.text((x0 + 2*circle_square_lateral_pad + circle_square_size, y0 + font_pad), f"{min_display}min", font = font, fill = 0)
+				# draw.text((screen_pad[3] + font_pad, y0 + font_pad), f"({x['train_id']}) : {min_display}min", font = font, fill = 0)
+				draw.text((screen_pad[3] + 2*circle_square_lateral_pad + circle_square_size, y0 + font_pad), f"{min_display}min", font = font, fill = 0)
 				y0 += line_height
 			else:
-				# draw.text((x0 + font_pad, y0 + font_pad), f"({x['train_id']}) : {min_display}min{sec_display}", font = font, fill = 0)
-				draw.text((x0 + 2*circle_square_lateral_pad + circle_square_size, y0 + font_pad), f"{min_display}min{sec_display}", font = font, fill = 0)
+				# draw.text((screen_pad[3] + font_pad, y0 + font_pad), f"({x['train_id']}) : {min_display}min{sec_display}", font = font, fill = 0)
+				draw.text((screen_pad[3] + 2*circle_square_lateral_pad + circle_square_size, y0 + font_pad), f"{min_display}min{sec_display}", font = font, fill = 0)
 				y0 += line_height
 
 	# Display it on the screen
