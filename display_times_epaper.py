@@ -15,7 +15,7 @@ import time
 from PIL import Image,ImageDraw,ImageFont
 import traceback
 
-logging.basicConfig(level=logging.DEBUG)                           #Enable log-information for debbuging
+logging.basicConfig(level=logging.INFO)                           #Enable log-information for debbuging
 
 # Define paths
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -45,10 +45,16 @@ epd.sleep()
 # Display parameters
 screen_pad = (20, 20, 20, 20) # up, right, bottom, left
 font_pad = 10
-line_height = font_size + 2*font_pad
-circle_square_size = font_size*1.1
+Himage = Image.new('L', (epd.width, epd.height), 255)           #Clear the frame (255 = white)
+draw = ImageDraw.Draw(Himage)
+font_width, font_height = draw.textsize("N", font=font)
+line_height = font_height + 2*font_pad
+circle_square_size = font_height*1.1
 circle_square_lateral_pad = 40
 n_lines = (epd.height - screen_pad[0] - screen_pad[2])//line_height
+
+# Initialize partial refresh counter
+partials = 0
 
 while True:
 	# Load latest wait times
@@ -114,7 +120,7 @@ while True:
 			draw.chord((screen_pad[3] + circle_square_lateral_pad, y0 + line_height/2 - circle_square_size/2,
 				screen_pad[3] + circle_square_lateral_pad + circle_square_lateral_pad, y0 + line_height/2 + circle_square_size/2),
 				0, 360, fill = 50)
-			draw.text((screen_pad[3] + circle_square_lateral_pad + circle_square_size/4, y0 + line_height/2 - font_size/2), f"{x['train_id']}", font = font, fill = 255)
+			draw.text((screen_pad[3] + circle_square_lateral_pad + circle_square_size/4, y0 + line_height/2 - font_height/2), f"{x['train_id']}", font = font, fill = 255)
 
 			# Write waiting time
 			if min_num == 0 and sec_num == 0:
@@ -131,9 +137,18 @@ while True:
 				y0 += line_height
 
 	# Display it on the screen
-	epd.init()
+	#epd.init()
 	#epd.Clear()
 	#Himage = Himage.transpose(Image.Transpose(2))
-	epd.display(epd.getbuffer(Himage))                              #Display the buffer on the screen
+	if partials <= 10:
+		partials += 1
+		epd.init_part()
+		epd.display_Partial(epd.getbuffer(Himage), 0, 0, epd.width, epd.height)
+	else:
+		partials = 0
+		epd.init()
+		epd.Clear()
+		print("CLEARED")
+		epd.display(epd.getbuffer(Himage))                              #Display the buffer on the screen
 	epd.sleep()
-	time.sleep(60)
+	time.sleep(30)
