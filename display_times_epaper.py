@@ -29,11 +29,11 @@ with open(os.path.join(script_dir, 'stop_names.json'), 'r') as file:
     stop_names = json.load(file)
 
 # Define display parameters
-min_wait_time = -1*60 # minimum wait time to display
+min_wait_time = 0*60 # minimum wait time to display
 max_wait_time = 20*60 # maximum wait time to display
 
 # Prepare font and parameters
-font_size = 35
+font_size = 45
 font = ImageFont.truetype(os.path.join(script_dir, "Font.ttc"), font_size)
 
 # Prepare EPD object
@@ -65,14 +65,20 @@ while True:
 	# Display parameters
 	x0 = 20
 	y0 = 20
-	font_pad = 5
+	font_pad = 10
 	line_height = font_size + 2*font_pad
-	circle_square_size = font_size*1
+	circle_square_size = font_size*1.1
 	circle_square_lateral_pad = 40
 
 	# Go through wait times and print them nicely
 	current_time = int(time.time())
+	formatted_time = time.strftime('%H:%M', time.localtime())
 
+	# Print current time, right-justified
+	text_width, text_height = draw.textsize(formatted_time, font=font)
+	draw.text((epd.width - x0 - text_width, epd.height - y0 - text_height), formatted_time, font = font, fill = 0)
+
+	# Print wait times
 	for stop_id, cur_wait_times in wait_times_split.items():
 		draw.rectangle((0, y0, epd.width, y0 + line_height), fill = 0)
 		draw.text((x0 + font_pad, y0 + font_pad), f"{stop_names[stop_id]}", font = font, fill = 255)
@@ -90,7 +96,7 @@ while True:
 				wait_time = -wait_time
 
 			min_num = wait_time//60
-			sec_num = 15*((wait_time%60)//15)
+			sec_num = 30*((wait_time%60)//30)
 
 			if neg_wait_time:
 				min_display = f"-{min_num:1d}"
@@ -102,7 +108,7 @@ while True:
 			# Draw train line
 			draw.chord((x0 + circle_square_lateral_pad, y0 + line_height/2 - circle_square_size/2,
 				x0 + circle_square_lateral_pad + circle_square_lateral_pad, y0 + line_height/2 + circle_square_size/2),
-				0, 360, fill = 0)
+				0, 360, fill = 50)
 			draw.text((x0 + circle_square_lateral_pad + circle_square_size/4, y0 + line_height/2 - font_size/2), f"{x['train_id']}", font = font, fill = 255)
 
 			# Write waiting time
@@ -121,7 +127,8 @@ while True:
 
 	# Display it on the screen
 	epd.init()
-	epd.Clear()
+	#epd.Clear()
+	#Himage = Himage.transpose(Image.Transpose(2))
 	epd.display(epd.getbuffer(Himage))                              #Display the buffer on the screen
 	epd.sleep()
-	time.sleep(15)
+	time.sleep(60)
